@@ -10,10 +10,14 @@ PORT = 7070
 CERTFILE = 'server-cert.pem'
 
 def main():
-
     try:
         # Crear un socket TCP/IP
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+        # Crear un contexto SSL/TLS y forzar el uso de TLS 1.3
+        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        ssl_context.minimum_version = ssl.TLSVersion.TLSv1_3
+        ssl_context.maximum_version = ssl.TLSVersion.TLSv1_3
 
         # Configurar la lista de Cipher Suites
         cipher_suites = [
@@ -33,10 +37,11 @@ def main():
             "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384"
         ]
 
-        # Utilizar SSL/TLS para el socket
-        ssl_context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
-        #ssl_context.set_ciphers(':'.join(cipher_suites))  # Configurar la lista de Cipher Suites
+        # Configurar el contexto SSL/TLS
+        #ssl_context.set_ciphers(':'.join(cipher_suites))
         ssl_context.load_verify_locations(CERTFILE)  # Cargar el certificado del servidor
+
+        # Utilizar SSL/TLS para el socket
         ssl_socket = ssl_context.wrap_socket(client_socket, server_hostname=HOST)
 
         # Conectar al servidor

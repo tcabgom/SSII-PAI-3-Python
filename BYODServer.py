@@ -2,6 +2,7 @@ import json
 import socket
 import ssl
 import threading
+from ssl import PROTOCOL_TLS_SERVER
 
 HOST = 'localhost'
 PORT = 7070
@@ -71,6 +72,8 @@ def main():
 
         print(f"Servidor escuchando en {HOST}:{PORT}...")
 
+        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+
         # Configurar la lista de Cipher Suites
         cipher_suites = [
             "TLS_AES_256_GCM_SHA384",
@@ -85,13 +88,19 @@ def main():
             "TLS_RSA_WITH_AES_128_CBC_SHA256",
             "TLS_RSA_WITH_AES_256_CBC_SHA",
             "TLS_RSA_WITH_AES_128_CBC_SHA",
-            "TLS_RSA_WITH_3DES_EDE_CBC_SHA"
+            "TLS_RSA_WITH_3DES_EDE_CBC_SHA",
+            "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",   
+            "TLS_AES_128_CCM_SHA256",
+            "TLS_AES_128_CCM_8_SHA256"
         ]
 
-        # Cargar la clave privada y el certificado del servidor
-        ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-        #ssl_context.set_ciphers(':'.join(cipher_suites))  # Configurar la lista de Cipher Suites
+        # Configurar el contexto SSL/TLS
+        #ssl_context.set_ciphers(':'.join(cipher_suites))
         ssl_context.load_cert_chain(certfile=CERTFILE, keyfile=KEYFILE)
+
+        # Forzar el uso de TLS 1.3
+        ssl_context.minimum_version = ssl.TLSVersion.TLSv1_3
+        ssl_context.maximum_version = ssl.TLSVersion.TLSv1_3
         
         while True:
             # Aceptar conexiones entrantes
