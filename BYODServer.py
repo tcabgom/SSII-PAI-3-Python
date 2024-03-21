@@ -1,6 +1,16 @@
+import json
 import socket
 import ssl
 import threading
+
+HOST = 'localhost'
+PORT = 7070
+
+# Usuarios y contraseñas permitidos
+USERS = {
+    'usuario1': 'password1',
+    'usuario2': 'password2'
+}
 
 # Rutas a los archivos de clave privada y certificado del servidor
 KEYFILE = 'server-key.pem'
@@ -10,13 +20,19 @@ def handle_client(connection_socket, address):
     try:
         print("Conexión aceptada desde:", address)
 
-        # Recibir datos del cliente
-        data = connection_socket.recv(1024)
-        print("Mensaje recibido del cliente:", data.decode())
+        data = connection_socket.recv(1024).decode()
+        client_data = json.loads(data)
+        username = client_data['username']
+        password = client_data['password']
+        message = client_data['message']
 
-        # Responder al cliente
-        response = "¡Hola, cliente!"
-        connection_socket.sendall(response.encode())
+        # Autenticar al usuario
+        auth_result = authenticate_user(connection_socket, username, password)
+        if not auth_result:
+            return
+        
+        print("Mensaje recibido del cliente:", message)
+        store_secret_message(connection_socket)
 
     except Exception as e:
         print("Error:", e)
@@ -25,10 +41,23 @@ def handle_client(connection_socket, address):
         # Cerrar la conexión
         connection_socket.close()
 
+def authenticate_user(connection_socket, username, password):
+    # Recibir nombre de usuario y contraseña del cliente
+
+    # Verificar nombre de usuario y contraseña
+    if username in USERS and USERS[username] == password:
+        return True
+    else:
+        connection_socket.sendall(b"Autenticacion fallida.")
+        return False
+
+def store_secret_message(connection_socket):
+    # Almacenar el mensaje secreto
+    connection_socket.sendall(b"Mensaje almacenado correctamente.")
+
 def main():
     # Configuración del host y puerto del servidor
-    HOST = 'localhost'
-    PORT = 7070
+
 
     try:
         # Crear un socket TCP/IP
@@ -42,9 +71,28 @@ def main():
 
         print(f"Servidor escuchando en {HOST}:{PORT}...")
 
+        # Configurar la lista de Cipher Suites
+        cipher_suites = [
+            "TLS_AES_256_GCM_SHA384",
+            "TLS_AES_128_GCM_SHA256",
+            "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+            "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+            "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
+            "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
+            "TLS_RSA_WITH_AES_256_GCM_SHA384",
+            "TLS_RSA_WITH_AES_128_GCM_SHA256",
+            "TLS_RSA_WITH_AES_256_CBC_SHA256",
+            "TLS_RSA_WITH_AES_128_CBC_SHA256",
+            "TLS_RSA_WITH_AES_256_CBC_SHA",
+            "TLS_RSA_WITH_AES_128_CBC_SHA",
+            "TLS_RSA_WITH_3DES_EDE_CBC_SHA"
+        ]
+
         # Cargar la clave privada y el certificado del servidor
         ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+        #ssl_context.set_ciphers(':'.join(cipher_suites))  # Configurar la lista de Cipher Suites
         ssl_context.load_cert_chain(certfile=CERTFILE, keyfile=KEYFILE)
+        
         while True:
             # Aceptar conexiones entrantes
             connection_socket, addr = server_socket.accept()
@@ -65,9 +113,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
 
