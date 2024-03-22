@@ -3,11 +3,19 @@ import message
 import json
 import ssl
 
-HOST = 'localhost'
+HOST = '192.168.43.187'
 PORT = 7070
 
 # Ruta al archivo de certificado del servidor
 CERTFILE = 'server-cert.pem'
+
+def verify_cert(cert, hostname):
+    # Verificar si la dirección IP está en el certificado
+    for sub in cert['subject']:
+        if sub[0][0] == 'commonName':
+            if sub[0][1] == hostname:
+                return True
+    return False
 
 def main():
     try:
@@ -38,8 +46,10 @@ def main():
         ]
 
         # Configurar el contexto SSL/TLS
-        #ssl_context.set_ciphers(':'.join(cipher_suites))
+        # ssl_context.set_ciphers(':'.join(cipher_suites))
         ssl_context.load_verify_locations(CERTFILE)  # Cargar el certificado del servidor
+        ssl_context.verify_mode = ssl.CERT_REQUIRED
+        ssl_context.check_hostname = False
 
         # Utilizar SSL/TLS para el socket
         ssl_socket = ssl_context.wrap_socket(client_socket, server_hostname=HOST)
@@ -67,8 +77,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
 
 
 
