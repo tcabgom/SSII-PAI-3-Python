@@ -1,0 +1,17 @@
+# Usa una imagen base de Python
+FROM python:3.8-slim
+
+# Establece el directorio de trabajo en /app
+WORKDIR /app
+
+# Copia el código del servidor al contenedor
+COPY . .
+
+# Instala las dependencias
+# RUN pip install --no-cache-dir -r requirements.txt
+
+# Expone el puerto 7070
+EXPOSE 7070
+
+# Comando para ejecutar el servidor cuando se inicie el contenedor
+CMD ["python", "BYODServer.py"]
