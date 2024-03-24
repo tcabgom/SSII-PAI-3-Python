@@ -6,6 +6,8 @@ from cryptography.hazmat.primitives.hashes import SHA256
 from cryptography.hazmat.backends import default_backend
 from datetime import datetime, timedelta
 
+IP_SERVER = u'localhost'
+
 def generate_self_signed_cert():
     # Generar una clave RSA
     private_key = rsa.generate_private_key(
@@ -16,7 +18,7 @@ def generate_self_signed_cert():
 
     # Crear un certificado autofirmado
     subject = issuer = x509.Name([
-        x509.NameAttribute(NameOID.COMMON_NAME, u'localhost')
+        x509.NameAttribute(NameOID.COMMON_NAME, IP_SERVER)
     ])
     cert = x509.CertificateBuilder().subject_name(
         subject
