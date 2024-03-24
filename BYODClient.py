@@ -18,7 +18,7 @@ def main():
         ctx = SSL.Context(SSL.TLS_CLIENT_METHOD)
         
         # Fijar el algoritmo de cifrado y el hash
-        ctx.set_cipher_list(b"ECDHE+AESGCM:SHA256")
+        ctx.set_cipher_list(b'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-RSA-AES128-CCM-SHA256')
 
         # Cargar el certificado del servidor
         ctx.load_verify_locations(CERTFILE)

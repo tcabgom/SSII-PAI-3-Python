@@ -98,7 +98,7 @@ def main():
             ctx.set_min_proto_version(SSL.TLS1_3_VERSION)
             ctx.set_max_proto_version(SSL.TLS1_3_VERSION)
 
-            ctx.set_cipher_list(b"ECDHE+AESGCM:SHA256")
+            ctx.set_cipher_list(b'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-RSA-AES128-CCM-SHA256')
 
             # Cargar el certificado del servidor
             ctx.use_certificate_file(CERTFILE)
