@@ -1,7 +1,7 @@
 import socket
 import message
 import json
-import ssl
+from OpenSSL import SSL
 
 HOST = 'localhost'  # Dirección IP del servidor
 PORT = 7070
@@ -14,27 +14,18 @@ def main():
         # Crear un socket TCP/IP
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        # Crear un contexto SSL/TLS y forzar el uso de TLS 1.3
-        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-        ssl_context.minimum_version = ssl.TLSVersion.TLSv1_3
-        ssl_context.maximum_version = ssl.TLSVersion.TLSv1_3
+        # Crear un contexto SSL/TLS con OpenSSL
+        ctx = SSL.Context(SSL.TLS_CLIENT_METHOD)
+        
+        # Fijar el algoritmo de cifrado y el hash
+        ctx.set_cipher_list(b"ECDHE+AESGCM:SHA256")
 
-        # Configurar la lista de Cipher Suites
-        cipher_suites = [
-            "TLS_AES_256_GCM_SHA384",
-            "TLS_AES_128_GCM_SHA256",
-            "TLS_AES_128_CCM_SHA256",
-            "TLS_AES_128_CCM_8_SHA256"
-        ]
-
-        # Configurar el contexto SSL/TLS
-        ssl_context.load_verify_locations(CERTFILE)  # Cargar el certificado del servidor
-        ssl_context.verify_mode = ssl.CERT_REQUIRED
-        #ssl_context.check_hostname = False
-        #ssl_context.set_ciphers(':'.join(cipher_suites))
+        # Cargar el certificado del servidor
+        ctx.load_verify_locations(CERTFILE)
+        ctx.set_verify(SSL.VERIFY_PEER, lambda x, y, z, a, b: True)
 
         # Utilizar SSL/TLS para el socket
-        ssl_socket = ssl_context.wrap_socket(client_socket, server_hostname=HOST)
+        ssl_socket = SSL.Connection(ctx, client_socket)
 
         # Conectar al servidor
         ssl_socket.connect((HOST, PORT))
@@ -55,10 +46,12 @@ def main():
 
     finally:
         # Cerrar la conexión
-        ssl_socket.close()
+        if ssl_socket:
+            ssl_socket.close()
 
 if __name__ == "__main__":
     main()
+
 
 
 
