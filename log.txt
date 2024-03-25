@@ -1,0 +1,6 @@
+50 conexiones completadas. Tiempo total acumulado: 0.09 segundos.
+100 conexiones completadas. Tiempo total acumulado: 0.28 segundos.
+150 conexiones completadas. Tiempo total acumulado: 0.44 segundos.
+200 conexiones completadas. Tiempo total acumulado: 0.63 segundos.
+250 conexiones completadas. Tiempo total acumulado: 0.82 segundos.
+300 conexiones completadas. Tiempo total acumulado: 1.06 segundos.

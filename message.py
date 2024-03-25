@@ -1,6 +1,7 @@
 import json
 import random
 import string
+from users import USERS
 
 def create_input_message():
     data = {
@@ -12,12 +13,13 @@ def create_input_message():
     return json_data
 
 
-def create_random_message():
+def random_string(length):
     
-    def random_string(length):
-        return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
-    username = random_string(8)
-    password = random_string(8)
+def create_random_message():
+ 
+    username, password = random.choice(list(USERS.items()))
     message = random_string(16)
-    return username, password, message
+    json_data = json.dumps({"username": username, "password": password, "message": message})
+    return json_data

@@ -1,6 +1,8 @@
 import socket
 import message
 import json
+import time
+import threading
 from OpenSSL import SSL
 
 HOST = 'localhost'  # Dirección IP del servidor
@@ -9,7 +11,14 @@ PORT = 7070
 # Ruta al archivo de certificado del servidor
 CERTFILE = 'server-cert.pem'
 
-def main():
+# Variable global para almacenar el tiempo total acumulado
+total_elapsed_time = 0
+
+# Mutex para asegurar la escritura en el archivo de registro
+mutex = threading.Lock()
+
+def client_thread(thread_id):
+    global total_elapsed_time
     try:
         # Crear un socket TCP/IP
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -20,9 +29,6 @@ def main():
         ctx.set_min_proto_version(SSL.TLS1_3_VERSION)
         ctx.set_max_proto_version(SSL.TLS1_3_VERSION)
         
-        # Seleccionar el algoritmo de cifrado y el hash si se desea
-        #ctx.set_cipher_list(b'AES128-GCM-SHA256')
-
         # Cargar el certificado del servidor
         ctx.load_verify_locations(CERTFILE)
         ctx.set_verify(SSL.VERIFY_PEER, lambda x, y, z, a, b: True)
@@ -32,17 +38,16 @@ def main():
 
         # Conectar al servidor
         ssl_socket.connect((HOST, PORT))
-        print(f"Conectado al servidor {HOST}:{PORT}")
 
         # Crear objeto JSON con los datos de usuario y el mensaje
-        json_data = message.create_input_message()
+        json_data = message.create_random_message()
 
         # Enviar datos al servidor
         ssl_socket.sendall(json_data.encode())
 
         # Recibir respuesta del servidor
         response = ssl_socket.recv(1024)
-        print("Respuesta del servidor:", response.decode())
+        print(f"Respuesta del servidor para hilo {thread_id}:", response.decode())
 
     except Exception as e:
         print("Error:", e)
@@ -51,6 +56,30 @@ def main():
         # Cerrar la conexión
         if ssl_socket:
             ssl_socket.close()
+
+def main():
+    global total_elapsed_time
+    try:
+        start_time = time.time()
+        threads = []
+        for i in range(1, 301):
+            thread = threading.Thread(target=client_thread, args=(i,))
+            threads.append(thread)
+            thread.start()
+            if i % 50 == 0:
+                with mutex:
+                    elapsed_time = time.time() - start_time
+                    total_elapsed_time += elapsed_time
+                    print(f"{i} conexiones completadas. Tiempo total acumulado: {total_elapsed_time:.2f} segundos.")
+                    with open("log.txt", "a") as f:
+                        f.write(f"{i} conexiones completadas. Tiempo total acumulado: {total_elapsed_time:.2f} segundos.\n")
+                    start_time = time.time()
+
+        for thread in threads:
+            thread.join()
+
+    except Exception as e:
+        print("Error:", e)
 
 if __name__ == "__main__":
     main()
