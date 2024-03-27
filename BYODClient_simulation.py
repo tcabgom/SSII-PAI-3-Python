@@ -48,14 +48,12 @@ def client_thread(thread_id):
         # Recibir respuesta del servidor
         response = ssl_socket.recv(1024)
         print(f"Respuesta del servidor para hilo {thread_id}:", response.decode())
+        
+        if ssl_socket:
+            ssl_socket.close()
 
     except Exception as e:
         print("Error:", e)
-
-    finally:
-        # Cerrar la conexión
-        if ssl_socket:
-            ssl_socket.close()
 
 def main():
     global total_elapsed_time

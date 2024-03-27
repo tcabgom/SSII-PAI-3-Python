@@ -43,14 +43,12 @@ def main():
         # Recibir respuesta del servidor
         response = ssl_socket.recv(1024)
         print("Respuesta del servidor:", response.decode())
+        
+        if ssl_socket:
+            ssl_socket.close()
 
     except Exception as e:
         print("Error:", e)
-
-    finally:
-        # Cerrar la conexión
-        if ssl_socket:
-            ssl_socket.close()
 
 if __name__ == "__main__":
     main()
